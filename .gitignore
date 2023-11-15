@@ -72,5 +72,5 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 #Ignored folder for Assets from Unity Asset Store
-/[Aa]ssets/Ignored/
-/[Aa]ssets/Ignored.meta
+# /[Aa]ssets/Ignored/
+# /[Aa]ssets/Ignored.meta

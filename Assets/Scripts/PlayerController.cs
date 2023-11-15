@@ -33,7 +33,7 @@ public class PlayerController : MonoBehaviour
     public IEnumerator dashCoroutine;
     public float dashDistance = 7f;
     public float dashTime = 0.3f;
-    public float dashTimer = 0f;
+    private float _dashTimer = 0f;
     public Vector2 dashDir;
     public const float endDashVelocity = 10f;
     public const float endDashUpMult = 0.55f;
@@ -66,8 +66,6 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayerMask;
     public Transform groundCheckTransform;
 
-    [Header("Other")]
-    public SpriteRenderer playerRenderer;
     void Start()
     {
         groundCheckTransform = transform.Find("Groundcheck").transform;
@@ -159,7 +157,7 @@ public class PlayerController : MonoBehaviour
         movementVector.x = moveDir * maxSpeed;
         movementVector.y = rb.velocity.y;
 
-        if (rb.velocity.x > maxSpeed && System.Math.Sign(rb.velocity.x) == moveDir)
+        if (Mathf.Abs(rb.velocity.x) > maxSpeed && System.Math.Sign(rb.velocity.x) == moveDir)
         {
             rb.velocity = Vector2.Lerp(rb.velocity, movementVector, runReduce * mult * Time.deltaTime);
         }
@@ -174,7 +172,7 @@ public class PlayerController : MonoBehaviour
         if (moveDir != 0 && !lockFacing)
         {
             transform.rotation = Quaternion.Euler(0, Mathf.Clamp(180 * -moveDir, 0, 180), 0);
-            facingDirection = Mathf.Lerp(-1, 1, transform.rotation.y);
+            facingDirection = Mathf.Lerp(1, -1, transform.rotation.y);
         }
     }
 
@@ -268,22 +266,30 @@ public class PlayerController : MonoBehaviour
 
     void Dash()
     {
+        dashDir = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        if (dashDir.x == 0 && dashDir.y == 1)
+        {
+            return;
+        }
         canDash = false;
         canMove = false;
         isDashing = true;
         rb.gravityScale = 0;
-        dashDir = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         if (dashDir.normalized == Vector2.zero)
         {
             dashDir.x = facingDirection;
         }
         dashDir = dashDir.normalized;
         _beforeDashVelocity = rb.velocity;
-        dashTimer = dashTime;
+        _dashTimer = dashTime;
         dashCoroutine = DashCoroutine();
         dashParticles.Play();
         ParticleSystem.ShapeModule particleShape = dashParticles.shape;
-        particleShape.rotation = new Vector3(particleShape.rotation.x, particleShape.rotation.y, -Vector2.Angle(Vector2.up, -dashDir));
+        particleShape.rotation = new Vector3(particleShape.rotation.x, particleShape.rotation.y, Vector2.Angle(Vector2.up, -dashDir));
+        if(dashDir.y < 0)
+        {
+            ani.SetBool("CrouchDashing", true);
+        }
         StartCoroutine(dashCoroutine);
     }
 
@@ -309,6 +315,7 @@ public class PlayerController : MonoBehaviour
     {
         canMove = true;
         isDashing = false;
+        ani.SetBool("CrouchDashing", false);
         dashCooldownTimer = dashCooldown;
         rb.gravityScale = 5;
         dashParticles.Stop();
@@ -316,9 +323,9 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator DashCoroutine()
     {
-        while (dashTimer > 0)
+        while (_dashTimer > 0)
         {
-            dashTimer -= Time.deltaTime;
+            _dashTimer -= Time.deltaTime;
             DashUpdate();
             yield return null;
         }
