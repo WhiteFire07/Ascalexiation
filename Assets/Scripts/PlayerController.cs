@@ -24,7 +24,6 @@ public class PlayerController : MonoBehaviour
     public float runAccel = 8f;
     public float runReduce = 3f;
     public bool canMove;
-    public bool falling;
     public bool lockFacing = false;
 
     [Header("Dash")]
@@ -82,15 +81,6 @@ public class PlayerController : MonoBehaviour
 
         grounded = Grounded();
         ani.SetBool("Grounded", grounded);
-
-        if (!grounded && rb.velocity.y < 0)
-        {
-            if (!falling)
-            {
-                ani.SetTrigger("Falling");
-            }
-            falling = true;
-        }
 
         if (grounded)
         {
@@ -196,8 +186,6 @@ public class PlayerController : MonoBehaviour
         {
             canDash = true;
         }
-        ani.ResetTrigger("Falling");
-        falling = false;
     }
 
     void AirbornState()
@@ -213,12 +201,12 @@ public class PlayerController : MonoBehaviour
         if (grounded)
         {
             currentDoubleJumps = doubleJumps;
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetAxisRaw("Jump") > 0)
             {
                 Jump();
             }
         }
-        else if (Input.GetKeyDown(KeyCode.Space) && currentDoubleJumps > 0f && doubleJumpEnabled)
+        else if (Input.GetAxisRaw("Jump") > 0 && currentDoubleJumps > 0f && doubleJumpEnabled)
         {
             DoubleJump();
         }
@@ -274,6 +262,7 @@ public class PlayerController : MonoBehaviour
         canDash = false;
         canMove = false;
         isDashing = true;
+        ani.SetBool("Dashing", true);
         rb.gravityScale = 0;
         if (dashDir.normalized == Vector2.zero)
         {
@@ -286,10 +275,6 @@ public class PlayerController : MonoBehaviour
         dashParticles.Play();
         ParticleSystem.ShapeModule particleShape = dashParticles.shape;
         particleShape.rotation = new Vector3(particleShape.rotation.x, particleShape.rotation.y, Vector2.Angle(Vector2.up, -dashDir));
-        if(dashDir.y < 0)
-        {
-            ani.SetBool("CrouchDashing", true);
-        }
         StartCoroutine(dashCoroutine);
     }
 
@@ -315,7 +300,7 @@ public class PlayerController : MonoBehaviour
     {
         canMove = true;
         isDashing = false;
-        ani.SetBool("CrouchDashing", false);
+        ani.SetBool("Dashing", false);
         dashCooldownTimer = dashCooldown;
         rb.gravityScale = 5;
         dashParticles.Stop();
