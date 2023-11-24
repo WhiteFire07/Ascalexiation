@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     public bool dashEnabled = false;
     public bool superJumpEnabled = false;
     public bool doubleJumpEnabled = false;
+    public bool disableUpdash = false;
 
     [Header("Movement")]
     public float moveDir;
@@ -46,6 +47,7 @@ public class PlayerController : MonoBehaviour
     public float hyperJumpMult = 3f;
     public float superJumpHeight = 6f;
     public float hyperJumpHeight = 3f;
+    private bool _superJumping = false;
 
     [Header("Jumping")]
     public float jumpHeight = 5f;
@@ -191,6 +193,7 @@ public class PlayerController : MonoBehaviour
     void AirbornState()
     {
         rb.gravityScale = 5;
+        _superJumping = false;
     }
 
     #endregion
@@ -201,7 +204,7 @@ public class PlayerController : MonoBehaviour
         if (grounded)
         {
             currentDoubleJumps = doubleJumps;
-            if (Input.GetAxisRaw("Jump") > 0)
+            if (Input.GetAxisRaw("Jump") > 0 && !_superJumping)
             {
                 Jump();
             }
@@ -244,6 +247,8 @@ public class PlayerController : MonoBehaviour
             height = hyperJumpHeight;
             mult = hyperJumpMult;
         }
+        
+        _superJumping = true;
 
         rb.velocity = new Vector2(rb.velocity.x * mult, _jumpVelocity(height));
     }
@@ -255,8 +260,7 @@ public class PlayerController : MonoBehaviour
     void Dash()
     {
         dashDir = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-        if (dashDir.x == 0 && dashDir.y == 1)
-        {
+        if ((disableUpdash || dashDir.x == 0) && dashDir.y == 1) {
             return;
         }
         canDash = false;
