@@ -1,21 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Experimental.TerrainAPI;
 
 public class SaveStateController : MonoBehaviour
 {
-    public GameObject ss;
+    public PlayerController player;
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.LeftControl))
+        if (player.save.triggered)
         {
-            ss.transform.position = transform.position;
+            transform.position = player.transform.position;
         }
-        if (Input.GetKeyDown(KeyCode.Tab))
+        if (player.load.triggered)
         {
-            transform.position = ss.transform.position;
+            player.transform.position = transform.position;
         }
     }
 }

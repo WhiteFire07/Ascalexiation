@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
+
 
 public class PlayerController : MonoBehaviour
 {
@@ -9,12 +11,22 @@ public class PlayerController : MonoBehaviour
     public static float maxHealth = 20f;
     public float health = 20f;
     public Animator ani;
+    public bool frozen;
 
     [Header("Abilities")]
     public bool dashEnabled = false;
     public bool superJumpEnabled = false;
     public bool doubleJumpEnabled = false;
-    public bool disableUpdash = false;
+    public bool upDashEnabled = true;
+
+    public void setDash(bool value = true)
+    {
+        dashEnabled = value;
+    }
+    public void setUpDash(bool value = true)
+    {
+        upDashEnabled = value;
+    }
 
     [Header("Movement")]
     public float moveDir;
@@ -67,6 +79,16 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayerMask;
     public Transform groundCheckTransform;
 
+    [Header("Controls")]
+    public InputActionAsset playerInput;
+    private InputActionMap inputs;
+    private InputAction move;
+    public InputAction jump;
+    private InputAction dash;
+    public InputAction pause;
+    public InputAction save;
+    public InputAction load;
+
     void Start()
     {
         groundCheckTransform = transform.Find("Groundcheck").transform;
@@ -74,10 +96,23 @@ public class PlayerController : MonoBehaviour
         playerCollider = GetComponent<BoxCollider2D>();
         canMove = true;
         health = maxHealth;
+        inputs = playerInput.FindActionMap("Player");
+        inputs.Enable();
+        move = inputs.FindAction("Move");
+        jump = inputs.FindAction("Jump");
+        jump.canceled += ctx => CutJump();
+        dash = inputs.FindAction("Dash");
+        pause = inputs.FindAction("Pause");
+        save = inputs.FindAction("Create Checkpoint");
+        load = inputs.FindAction("Load Checkpoint");
     }
 
     void Update()
     {
+        if (frozen)
+        {
+            canMove = false;
+        }
 
         TimerVariables();
 
@@ -87,28 +122,13 @@ public class PlayerController : MonoBehaviour
         if (grounded)
         {
             GroundedState();
-        } else
+        }
+        else
         {
             AirbornState();
         }
 
-        #region Debug Rays
-
-        Color rayColor;
-        if (groundCheckRay.collider != null)
-        {
-            rayColor = Color.green;
-        }
-        else
-        {
-            rayColor = Color.red;
-        }
-        Debug.DrawRay(new Vector3(groundCheckTransform.position.x - playerCollider.bounds.extents.x, groundCheckTransform.position.y), new Vector2(0f, -groundCheckCastHeight), rayColor);
-        Debug.DrawRay(new Vector3(groundCheckTransform.position.x + playerCollider.bounds.extents.x, groundCheckTransform.position.y), new Vector2(0f, -groundCheckCastHeight), rayColor);
-
-        #endregion
-
-        if (canDash && Input.GetKeyDown(KeyCode.LeftShift) && canDash && dashEnabled)
+        if (canDash && dash.triggered && dashEnabled)
         {
             Dash();
         }
@@ -117,6 +137,10 @@ public class PlayerController : MonoBehaviour
         {
             Move();
             JumpControl();
+        }
+        if (Mathf.Abs(rb.velocity.x) <= 3)
+        {
+            ani.SetBool("Running", false);
         }
     }
 
@@ -135,15 +159,14 @@ public class PlayerController : MonoBehaviour
 
     void Move()
     {
+
         float mult = grounded ? 1 : airMult;
 
-        moveDir = Input.GetAxisRaw("Horizontal");
-        if(moveDir != 0)
+        moveDir = move.ReadValue<Vector2>()[0];
+
+        if (moveDir != 0)
         {
             ani.SetBool("Running", true);
-        } else if (rb.velocity.x <= 3)
-        {
-            ani.SetBool("Running", false);
         }
 
         movementVector.x = moveDir * maxSpeed;
@@ -204,18 +227,14 @@ public class PlayerController : MonoBehaviour
         if (grounded)
         {
             currentDoubleJumps = doubleJumps;
-            if (Input.GetAxisRaw("Jump") > 0 && !_superJumping)
+            if (jump.ReadValue<float>() > 0 && !_superJumping)
             {
                 Jump();
             }
         }
-        else if (Input.GetAxisRaw("Jump") > 0 && currentDoubleJumps > 0f && doubleJumpEnabled)
+        else if (jump.ReadValue<float>() > 0 && currentDoubleJumps > 0f && doubleJumpEnabled)
         {
             DoubleJump();
-        }
-        if (!grounded && rb.velocity.y > 0 && Input.GetKeyUp(KeyCode.Space))
-        {
-            CutJump();
         }
     }
 
@@ -234,7 +253,10 @@ public class PlayerController : MonoBehaviour
 
     void CutJump()
     {
-        rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * reduceJumpMult);
+        if (!grounded && rb.velocity.y > 0)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * reduceJumpMult);
+        }
     }
 
     void SuperJump()
@@ -247,7 +269,7 @@ public class PlayerController : MonoBehaviour
             height = hyperJumpHeight;
             mult = hyperJumpMult;
         }
-        
+
         _superJumping = true;
 
         rb.velocity = new Vector2(rb.velocity.x * mult, _jumpVelocity(height));
@@ -259,9 +281,17 @@ public class PlayerController : MonoBehaviour
 
     void Dash()
     {
-        dashDir = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-        if ((disableUpdash || dashDir.x == 0) && dashDir.y == 1) {
-            return;
+        dashDir = move.ReadValue<Vector2>();
+        if ((!upDashEnabled || dashDir.x == 0) && dashDir.y == 1)
+        {
+            if (dashDir.x != 0)
+            {
+                dashDir.y = 0;
+            }
+            else
+            {
+                return;
+            }
         }
         canDash = false;
         canMove = false;
@@ -292,7 +322,7 @@ public class PlayerController : MonoBehaviour
         }
         rb.velocity = dashVelocity;
 
-        if (Input.GetKeyDown(KeyCode.Space) && grounded && superJumpEnabled)
+        if (jump.triggered && grounded && superJumpEnabled)
         {
             StopCoroutine(dashCoroutine);
             DashEnd();
@@ -330,5 +360,20 @@ public class PlayerController : MonoBehaviour
     }
 
     #endregion
+
+    public void Freeze()
+    {
+        StopAllCoroutines();
+        DashEnd();
+        frozen = true;
+        dash.Disable();
+    }
+
+    public void unFreeze()
+    {
+        frozen = false;
+        canMove = true;
+        dash.Enable();
+    }
 
 }

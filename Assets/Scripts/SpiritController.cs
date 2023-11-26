@@ -1,8 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.U2D.Path;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class SpiritController : MonoBehaviour
 {
@@ -16,6 +12,7 @@ public class SpiritController : MonoBehaviour
     void Start()
     {
         pcont = player.GetComponent<PlayerController>();
+        transform.position = player.transform.position + new Vector3(offset.x * pcont.facingDirection, offset.y, offset.z);
     }
 
     // Update is called once per frame
@@ -23,6 +20,6 @@ public class SpiritController : MonoBehaviour
     {
         ani.SetBool("CanDash", pcont.canDash);
         Vector3 _offset = new Vector3(offset.x * pcont.facingDirection, offset.y, offset.z);
-        transform.position = Vector3.MoveTowards(transform.position, player.transform.position + _offset, speed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, player.transform.position + _offset, speed * Time.deltaTime);
     }
 }
