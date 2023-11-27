@@ -290,7 +290,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                return;
+                dashDir.x = facingDirection;
             }
         }
         canDash = false;
