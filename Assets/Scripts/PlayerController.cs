@@ -82,7 +82,7 @@ public class PlayerController : MonoBehaviour
     [Header("Controls")]
     public InputActionAsset playerInput;
     private InputActionMap inputs;
-    private InputAction move;
+    public InputAction move;
     public InputAction jump;
     private InputAction dash;
     public InputAction pause;

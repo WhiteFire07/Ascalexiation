@@ -17,7 +17,6 @@ public class CutscenePlayer : MonoBehaviour
         }
         index = 0;
         currentPanel = panels[(int)index];
-        pcont.gameObject.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
     }
 
     // Update is called once per frame
