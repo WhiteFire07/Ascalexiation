@@ -13,6 +13,11 @@ public class PlayerController : MonoBehaviour
     public Animator ani;
     public bool frozen;
 
+    [Header("SFX")]
+    public AudioSource jumpSFX;
+    public AudioSource dashSFX;
+    public AudioSource walkSFX;
+
     [Header("Abilities")]
     public bool dashEnabled = false;
     public bool superJumpEnabled = false;
@@ -140,6 +145,7 @@ public class PlayerController : MonoBehaviour
         }
         if (Mathf.Abs(rb.velocity.x) <= 3)
         {
+            walkSFX.Stop();
             ani.SetBool("Running", false);
         }
     }
@@ -166,6 +172,10 @@ public class PlayerController : MonoBehaviour
 
         if (moveDir != 0)
         {
+            if(!walkSFX.isPlaying && grounded)
+            {
+                walkSFX.Play();
+            }
             ani.SetBool("Running", true);
         }
 
@@ -215,6 +225,10 @@ public class PlayerController : MonoBehaviour
 
     void AirbornState()
     {
+        if(walkSFX.isPlaying)
+        {
+            walkSFX.Stop();
+        }
         rb.gravityScale = 5;
         _superJumping = false;
     }
@@ -241,6 +255,7 @@ public class PlayerController : MonoBehaviour
 
     void Jump()
     {
+        jumpSFX.Play();
         rb.velocity = new Vector2(rb.velocity.x, _jumpVelocity(jumpHeight));
     }
 
@@ -271,7 +286,7 @@ public class PlayerController : MonoBehaviour
         }
 
         _superJumping = true;
-
+        jumpSFX.Play();
         rb.velocity = new Vector2(rb.velocity.x * mult, _jumpVelocity(height));
     }
 
@@ -296,7 +311,6 @@ public class PlayerController : MonoBehaviour
         canDash = false;
         canMove = false;
         isDashing = true;
-        ani.SetBool("Dashing", true);
         rb.gravityScale = 0;
         if (dashDir.normalized == Vector2.zero)
         {
@@ -306,7 +320,9 @@ public class PlayerController : MonoBehaviour
         _beforeDashVelocity = rb.velocity;
         _dashTimer = dashTime;
         dashCoroutine = DashCoroutine();
+        ani.SetBool("Dashing", true);
         dashParticles.Play();
+        dashSFX.Play();
         ParticleSystem.ShapeModule particleShape = dashParticles.shape;
         particleShape.rotation = new Vector3(particleShape.rotation.x, particleShape.rotation.y, Vector2.Angle(Vector2.up, -dashDir));
         StartCoroutine(dashCoroutine);
