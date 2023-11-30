@@ -12,6 +12,14 @@ public class MenuButtonManager : MonoBehaviour
     public GameObject settings;
     public GameObject keybinds;
     public GameObject currentMenu;
+    public AudioMixer audioMixer;
+
+    public void Start()
+    {
+        audioMixer.SetFloat("MasterVol", PlayerPrefs.GetFloat("masterVol"));
+        audioMixer.SetFloat("MusicVol", PlayerPrefs.GetFloat("musicVol"));
+        audioMixer.SetFloat("SFXVol", PlayerPrefs.GetFloat("sfxVol"));
+    }
 
     public void StartGame() {
         SceneManager.LoadScene("MainScene");

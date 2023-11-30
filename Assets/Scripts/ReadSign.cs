@@ -16,7 +16,6 @@ public class ReadSign : MonoBehaviour
                 textPanel.SetActive(true);
                 active = true;
                 player.Freeze();
-                player.gameObject.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
             }
         }
     }

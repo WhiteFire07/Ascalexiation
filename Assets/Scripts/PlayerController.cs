@@ -382,6 +382,7 @@ public class PlayerController : MonoBehaviour
         StopAllCoroutines();
         DashEnd();
         frozen = true;
+        rb.velocity = Vector2.zero;
         dash.Disable();
     }
 

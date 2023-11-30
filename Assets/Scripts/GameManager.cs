@@ -24,6 +24,15 @@ public class GameManager : MonoBehaviour
         if (player.pause.triggered)
         {
             pauseMenu.SetActive(!pauseMenu.activeSelf);
+            if (pauseMenu.activeSelf)
+            {
+                player.Freeze();
+                Time.timeScale = 0;
+            } else
+            {
+                player.unFreeze();
+                Time.timeScale = 1;
+            }
         }
     }
 
@@ -39,7 +48,7 @@ public class GameManager : MonoBehaviour
         currentMenu = keybinds;
     }
 
-    public void OpenSettings()
+    public void OpenSettingsMenu()
     {
         currentMenu.SetActive(false);
         settings.SetActive(true);
@@ -55,6 +64,7 @@ public class GameManager : MonoBehaviour
 
     public void GoToMainMenu()
     {
+        Debug.Log("menu");
         SceneManager.LoadScene("MenuScene");
     }
 }

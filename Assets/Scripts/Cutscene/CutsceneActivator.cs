@@ -18,7 +18,6 @@ public class CutsceneActivator : MonoBehaviour
             cutscene.SetActive(true);
             player.transform.position = playerPos.position;
             pcont.Freeze();
-            pcont.gameObject.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
             gameObject.SetActive(false);
         }
     }

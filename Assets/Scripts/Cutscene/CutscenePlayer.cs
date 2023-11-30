@@ -15,6 +15,7 @@ public class CutscenePlayer : MonoBehaviour
         for(int i = 0; i < transform.childCount; i++) {
             panels.Add(transform.GetChild(i).gameObject);
         }
+        pcont.pause.Disable();
         index = 0;
         currentPanel = panels[(int)index];
     }
@@ -26,6 +27,7 @@ public class CutscenePlayer : MonoBehaviour
             if(index == transform.childCount) {
                 pcont.unFreeze();
                 gameObject.SetActive(false);
+                pcont.pause.Enable();
             }
         }
     }
