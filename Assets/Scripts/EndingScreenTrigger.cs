@@ -17,7 +17,6 @@ public class EndingScreenTrigger : MonoBehaviour
         if (other.CompareTag("Player") && !other.isTrigger)
         {
             vcam.gameObject.SetActive(true);
-            mainCam.GetComponent<PixelPerfectCamera>().enabled = false;
             endingScreen.SetActive(true);
             cart.SetActive(true);
             vcam.m_Lens.OrthographicSize = 10.8f;
